@@ -1,0 +1,16 @@
+services:
+  server:
+    build: .
+    container_name: nx-cache
+    environment:
+      - API_KEY_READ_TOKEN=1d2298eb-613d-43e0-bf9e-cfe3b93a4b63
+      - API_KEY_WRITE_TOKEN=dbbb6aa3-c39c-4689-a7bf-5ae93ac555aa
+      - CACHE_DIR=/opt/cache
+      - NODE_ENV=production
+    ports:
+      - 3000:3000
+    volumes:
+      - cache:/opt/cache
+
+volumes:
+  cache:
