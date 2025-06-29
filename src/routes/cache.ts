@@ -4,7 +4,7 @@ import { authenticate } from '../middlewares/auth';
 
 const router = Router();
 
-router.get('/:hash', authenticate, getRecord);
+router.get('/:hash', getRecord);
 router.put('/:hash', authenticate, saveRecord);
 
 export default router;
