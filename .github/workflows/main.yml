@@ -1,0 +1,68 @@
+name: Build, Test & Publish Docker
+
+on:
+  push:
+    branches:
+      - '*'
+  release:
+    types:
+      - created
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: npm install -g pnpm && pnpm install --frozen-lockfile
+
+      - name: Run build and tests
+        run: pnpm nx build nx-cache && pnpm nx test nx-cache
+
+  build-and-publish:
+    needs: build-and-test
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Define image name and tags
+        id: meta
+        run: |
+          # Standard-Image-Name für GHCR.
+          IMAGE_NAME="ghcr.io/${{ github.repository }}"
+          # Definiert den Tag basierend auf dem Release-Tag.
+          TAGS="${IMAGE_NAME}:${{ github.event.release.tag_name }}"
+          # Setzt die Ausgabevariable für den nächsten Schritt.
+          echo "TAGS=$TAGS" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: ${{ steps.meta.outputs.TAGS }}
