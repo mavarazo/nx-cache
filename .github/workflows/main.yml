@@ -25,14 +25,13 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm install -g pnpm && pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run build and tests
         run: pnpm nx build nx-cache && pnpm nx test nx-cache
 
   build-and-publish:
     needs: build-and-test
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
