@@ -30,16 +30,18 @@ npm install
 Configuration is handled via **dotenv** (`.env`):
 
 ```env
-API_KEY_TOKEN=secret-write-token
+API_KEY_READ_TOKEN=secret-read-token
+API_KEY_WRITE_TOKEN=secret-write-token
 CACHE_DIR=/tmp/nx-cache
 NODE_ENV=production
 PORT=3000
 ```
 
-* **API_KEY_TOKEN** – Token for write access
-* **CACHE_DIR** – Cache folder (default: `os.tmpdir()`)
-* **NODE_ENV** – Environment (`development` | `production`)
-* **PORT** – Server port (default: `3000`)
+* **API_KEY_READ_TOKEN** – Token for read access (optional)
+* **API_KEY_WRITE_TOKEN** – Token for write access (required)
+* **CACHE_DIR** – Cache folder (required, default: `os.tmpdir()`)
+* **NODE_ENV** – Environment (required, `development` | `production`)
+* **PORT** – Server port (required, default: `3000`)
 
 ---
 
@@ -57,7 +59,8 @@ npm start
 ```bash
 docker build -t nx-cache .
 docker run -d -p 3000:3000 \
-  -e API_KEY_TOKEN=secret-write-token \
+  -e API_KEY_READ_TOKEN=secret-read-token \
+  -e API_KEY_WRITE_TOKEN=secret-write-token \
   nx-cache
 ```
 
@@ -77,7 +80,7 @@ Update your `nx.json` to enable remote cache support:
         "remoteCache": {
           "url": "http://localhost:3000/v1/cache",
           "headers": {
-            "Authorization": "Bearer secret-write-token"
+            "Authorization": "Bearer secret-<read|write>-token"
           }
         }
       }
@@ -91,7 +94,7 @@ Update your `nx.json` to enable remote cache support:
 * **cacheableOperations**: defines which tasks should be cached (e.g., `build`, `test`).
 * **remoteCache.url**: URL of your cache server.
 * **headers**: optional – for API key authentication.
-
+  * GET requests: optional the **read token**.
   * PUT requests: require the **write token**.
 
 CI/CD best practices:

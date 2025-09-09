@@ -3,7 +3,7 @@ import app from '../app';
 import { Readable, Writable } from 'stream';
 import fs from 'fs';
 import { recordCache } from '../config/cache';
-import cache from '../routes/cache';
+import config from '../config/config';
 
 jest.mock('fs');
 
@@ -21,6 +21,7 @@ describe('cache controller', () => {
       // act
       request(app)
         .get('/v1/cache/12345')
+        .set('Authorization', 'Bearer read-token')
         .expect(200)
         .expect((res) => {
           expect(res.headers['content-type']).toContain(
@@ -42,6 +43,7 @@ describe('cache controller', () => {
       // act
       request(app)
         .get('/v1/cache/12345')
+        .set('Authorization', 'Bearer read-token')
         .expect(200)
         .expect((res) => {
           expect(res.headers['content-type']).toContain(
@@ -52,9 +54,35 @@ describe('cache controller', () => {
         .end(done);
     });
 
+    it('should return status 401', (done) => {
+      request(app)
+        .get('/v1/cache/12345')
+        .expect(401)
+        .expect((res) => {
+          expect(res.body).toEqual({
+            error: 'missing or invalid token',
+          });
+        })
+        .end(done);
+    });
+
+    it('should return status 403', (done) => {
+      request(app)
+        .get('/v1/cache/12345')
+        .set('Authorization', 'Bearer write-token')
+        .expect(403)
+        .expect((res) => {
+          expect(res.body).toEqual({
+            error: 'forbidden',
+          });
+        })
+        .end(done);
+    });
+
     it('should return status 404', (done) => {
       request(app)
         .get('/v1/cache/67890')
+        .set('Authorization', 'Bearer read-token')
         .expect(404)
         .expect((res) => {
           expect(res.body).toEqual({
@@ -78,7 +106,7 @@ describe('cache controller', () => {
       // act
       request(app)
         .put('/v1/cache/13579')
-        .set('Authorization', 'Bearer fancy-token')
+        .set('Authorization', 'Bearer write-token')
         .set('Content-Length', '4')
         .send('test')
         .expect(202)
@@ -91,7 +119,7 @@ describe('cache controller', () => {
         .end(done);
     });
 
-    it('should status 401', (done) => {
+    it('should return status 401', (done) => {
       request(app)
         .put('/v1/cache/13579')
         .expect(401)
@@ -103,7 +131,20 @@ describe('cache controller', () => {
         .end(done);
     });
 
-    it('should status 409 from cache', (done) => {
+    it('should return status 403', (done) => {
+      request(app)
+        .put('/v1/cache/13579')
+        .set('Authorization', 'Bearer read-token')
+        .expect(403)
+        .expect((res) => {
+          expect(res.body).toEqual({
+            error: 'forbidden',
+          });
+        })
+        .end(done);
+    });
+
+    it('should return status 409 from cache', (done) => {
       // arrange
       jest.spyOn(recordCache, 'get').mockReturnValue(Buffer.from('cached'));
       (fs.existsSync as jest.Mock).mockReturnValue(false);
@@ -111,7 +152,7 @@ describe('cache controller', () => {
       // act
       request(app)
         .put('/v1/cache/12345')
-        .set('Authorization', 'Bearer fancy-token')
+        .set('Authorization', 'Bearer write-token')
         .set('Content-Length', '4')
         .send('test')
         .expect(409)
@@ -123,7 +164,7 @@ describe('cache controller', () => {
         .end(done);
     });
 
-    it('should status 409 from storage', (done) => {
+    it('should return status 409 from storage', (done) => {
       // arrange
       jest.spyOn(recordCache, 'get').mockReturnValue(undefined);
       (fs.existsSync as jest.Mock).mockReturnValue(true);
@@ -131,7 +172,7 @@ describe('cache controller', () => {
       // act
       request(app)
         .put('/v1/cache/12345')
-        .set('Authorization', 'Bearer fancy-token')
+        .set('Authorization', 'Bearer write-token')
         .set('Content-Length', '4')
         .send('test')
         .expect(409)
