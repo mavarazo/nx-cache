@@ -1,15 +1,33 @@
 import express from 'express';
+import expressWinston from 'express-winston';
 import { errorHandler } from './middlewares/error';
 import cache from './routes/cache';
+import logger from './config/logger';
 
 const app = express();
 
-// app.use(express.json());
+// request logger
+app.use(
+  expressWinston.logger({
+    winstonInstance: logger,
+    meta: true,
+    msg: 'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
+    colorize: true,
+    expressFormat: true,
+  }),
+);
 
-// Routes
+// routes
 app.use('/v1/cache', cache);
 
-// Global error handler (should be after routes)
+// error logger, must be before error handler
+app.use(
+  expressWinston.errorLogger({
+    winstonInstance: logger,
+  }),
+);
+
+// global error handler
 app.use(errorHandler);
 
 export default app;
