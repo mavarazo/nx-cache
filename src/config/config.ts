@@ -4,14 +4,16 @@ import os from 'os';
 dotenv.config();
 
 interface Config {
-  apiKeyToken: string;
+  apiKeyReadToken?: string;
+  apiKeyWriteToken: string;
   cacheDir: string;
   nodeEnv: string;
   port: number;
 }
 
 const config: Config = {
-  apiKeyToken: process.env.API_KEY_TOKEN!,
+  apiKeyReadToken: process.env.API_KEY_READ_TOKEN,
+  apiKeyWriteToken: process.env.API_KEY_WRITE_TOKEN!,
   cacheDir: process.env.CACHE_DIR || os.tmpdir(),
   nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 3000,

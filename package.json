@@ -25,6 +25,7 @@
   "homepage": "https://github.com/mavarazo/nx-cache#readme",
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "@types/express-winston": "^3.0.4",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.4",
     "@types/supertest": "^6.0.3",
@@ -41,6 +42,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "express-winston": "^4.2.0",
     "lru-cache": "^11.1.0",
     "supertest": "^7.1.1",
     "winston": "^3.17.0"
