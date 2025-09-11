@@ -13,14 +13,14 @@ export const authForRead = (
   const authHeader = req.headers['authorization'];
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'missing or invalid token' });
+    res.status(401).send('error: missing or invalid token');
     return;
   }
 
   const token = authHeader.split(' ')[1];
 
   if (token !== config.apiKeyReadToken) {
-    res.status(403).json({ error: 'forbidden' });
+    res.status(403).send('error: forbidden');
     return;
   }
 
@@ -35,14 +35,14 @@ export const authForWrite = (
   const authHeader = req.headers['authorization'];
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'missing or invalid token' });
+    res.status(401).send('error: missing or invalid token');
     return;
   }
 
   const token = authHeader.split(' ')[1];
 
   if (token !== config.apiKeyWriteToken) {
-    res.status(403).json({ error: 'forbidden' });
+    res.status(403).send('error: forbidden');
     return;
   }
 
