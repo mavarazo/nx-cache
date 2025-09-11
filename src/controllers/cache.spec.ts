@@ -59,9 +59,7 @@ describe('cache controller', () => {
         .get('/v1/cache/12345')
         .expect(401)
         .expect((res) => {
-          expect(res.body).toEqual({
-            error: 'missing or invalid token',
-          });
+          expect(res.text).toEqual('error: missing or invalid token');
         })
         .end(done);
     });
@@ -72,9 +70,7 @@ describe('cache controller', () => {
         .set('Authorization', 'Bearer write-token')
         .expect(403)
         .expect((res) => {
-          expect(res.body).toEqual({
-            error: 'forbidden',
-          });
+          expect(res.text).toEqual('error: forbidden');
         })
         .end(done);
     });
@@ -124,9 +120,7 @@ describe('cache controller', () => {
         .put('/v1/cache/13579')
         .expect(401)
         .expect((res) => {
-          expect(res.body).toEqual({
-            error: 'missing or invalid token',
-          });
+          expect(res.text).toEqual('error: missing or invalid token');
         })
         .end(done);
     });
@@ -137,9 +131,7 @@ describe('cache controller', () => {
         .set('Authorization', 'Bearer read-token')
         .expect(403)
         .expect((res) => {
-          expect(res.body).toEqual({
-            error: 'forbidden',
-          });
+          expect(res.text).toEqual('error: forbidden');
         })
         .end(done);
     });
