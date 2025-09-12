@@ -77,6 +77,7 @@ describe('cache controller', () => {
         .get('/v1/cache/12345')
         .expect(401)
         .expect((res) => {
+          expect(res.headers['content-type']).toContain('text/plain');
           expect(res.text).toEqual('Missing or invalid token');
         })
         .end(done);
@@ -88,6 +89,7 @@ describe('cache controller', () => {
         .set('Authorization', 'Bearer some-token')
         .expect(403)
         .expect((res) => {
+          expect(res.headers['content-type']).toContain('text/plain');
           expect(res.text).toEqual('Forbidden');
         })
         .end(done);
@@ -99,6 +101,7 @@ describe('cache controller', () => {
         .set('Authorization', 'Bearer read-token')
         .expect(404)
         .expect((res) => {
+          expect(res.headers['content-type']).toContain('application/json');
           expect(res.body).toEqual({
             message: "Record with hash '67890' not found",
           });
@@ -138,6 +141,7 @@ describe('cache controller', () => {
         .put('/v1/cache/13579')
         .expect(401)
         .expect((res) => {
+          expect(res.headers['content-type']).toContain('text/plain');
           expect(res.text).toEqual('Missing or invalid token');
         })
         .end(done);
@@ -149,6 +153,7 @@ describe('cache controller', () => {
         .set('Authorization', 'Bearer read-token')
         .expect(403)
         .expect((res) => {
+          expect(res.headers['content-type']).toContain('text/plain');
           expect(res.text).toEqual('Forbidden');
         })
         .end(done);
@@ -167,6 +172,7 @@ describe('cache controller', () => {
         .send('test')
         .expect(409)
         .expect((res) => {
+          expect(res.headers['content-type']).toContain('application/json');
           expect(res.body).toEqual({
             message: "Record with hash '12345' already exists",
           });
@@ -187,6 +193,7 @@ describe('cache controller', () => {
         .send('test')
         .expect(409)
         .expect((res) => {
+          expect(res.headers['content-type']).toContain('application/json');
           expect(res.body).toEqual({
             message: "Record with hash '12345' already exists",
           });
