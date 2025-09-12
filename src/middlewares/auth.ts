@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import config from '../config/config';
+import { AppError, ForbiddenError, UnauthorizedError } from './error';
 
 export const authForRead = (
   req: Request,
@@ -13,18 +14,13 @@ export const authForRead = (
   const authHeader = req.headers['authorization'];
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res
-      .set('Content-Type', 'text/plain')
-      .status(401)
-      .send('error: missing or invalid token');
-    return;
+    throw new UnauthorizedError('Missing or invalid token');
   }
 
   const token = authHeader.split(' ')[1];
 
   if (token !== config.apiKeyReadToken) {
-    res.set('Content-Type', 'text/plain').status(403).send('error: forbidden');
-    return;
+    throw new ForbiddenError();
   }
 
   next();
@@ -38,18 +34,13 @@ export const authForWrite = (
   const authHeader = req.headers['authorization'];
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res
-      .set('Content-Type', 'text/plain')
-      .status(401)
-      .send('error: missing or invalid token');
-    return;
+    throw new UnauthorizedError('Missing or invalid token');
   }
 
   const token = authHeader.split(' ')[1];
 
   if (token !== config.apiKeyWriteToken) {
-    res.set('Content-Type', 'text/plain').status(403).send('error: forbidden');
-    return;
+    throw new ForbiddenError();
   }
 
   next();

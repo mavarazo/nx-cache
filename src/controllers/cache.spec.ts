@@ -59,7 +59,7 @@ describe('cache controller', () => {
         .get('/v1/cache/12345')
         .expect(401)
         .expect((res) => {
-          expect(res.text).toEqual('error: missing or invalid token');
+          expect(res.text).toEqual('Missing or invalid token');
         })
         .end(done);
     });
@@ -70,7 +70,7 @@ describe('cache controller', () => {
         .set('Authorization', 'Bearer write-token')
         .expect(403)
         .expect((res) => {
-          expect(res.text).toEqual('error: forbidden');
+          expect(res.text).toEqual('Forbidden');
         })
         .end(done);
     });
@@ -82,7 +82,7 @@ describe('cache controller', () => {
         .expect(404)
         .expect((res) => {
           expect(res.body).toEqual({
-            error: "record with hash '67890' not found",
+            message: "Record with hash '67890' not found",
           });
         })
         .end(done);
@@ -109,7 +109,7 @@ describe('cache controller', () => {
         .expect((res) => {
           expect(res.headers['content-type']).toContain('application/json');
           expect(res.body).toEqual({
-            message: "record with hash '13579' saved",
+            message: "Record with hash '13579' saved",
           });
         })
         .end(done);
@@ -120,7 +120,7 @@ describe('cache controller', () => {
         .put('/v1/cache/13579')
         .expect(401)
         .expect((res) => {
-          expect(res.text).toEqual('error: missing or invalid token');
+          expect(res.text).toEqual('Missing or invalid token');
         })
         .end(done);
     });
@@ -131,7 +131,7 @@ describe('cache controller', () => {
         .set('Authorization', 'Bearer read-token')
         .expect(403)
         .expect((res) => {
-          expect(res.text).toEqual('error: forbidden');
+          expect(res.text).toEqual('Forbidden');
         })
         .end(done);
     });
@@ -150,7 +150,7 @@ describe('cache controller', () => {
         .expect(409)
         .expect((res) => {
           expect(res.body).toEqual({
-            error: "record with hash '12345' already exists",
+            message: "Record with hash '12345' already exists",
           });
         })
         .end(done);
@@ -170,7 +170,7 @@ describe('cache controller', () => {
         .expect(409)
         .expect((res) => {
           expect(res.body).toEqual({
-            error: "record with hash '12345' already exists",
+            message: "Record with hash '12345' already exists",
           });
         })
         .end(done);

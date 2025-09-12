@@ -1,17 +1,57 @@
-import { Request, Response, NextFunction } from 'express';
+import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
+import logger from '../config/logger';
 
-export interface AppError extends Error {
-  status?: number;
+export class AppError extends Error {
+  status: number;
+
+  constructor(message: string, status = 500) {
+    super(message);
+    this.status = status;
+
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
 
-export const errorHandler = (
-  err: AppError,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  console.error(err);
-  res.status(err.status || 500).json({
-    message: err.message || 'Internal Server Error',
+export class UnauthorizedError extends AppError {
+  constructor(message = 'Unauthorized') {
+    super(message, 401);
+  }
+}
+export class ForbiddenError extends AppError {
+  constructor(message = 'Forbidden') {
+    super(message, 403);
+  }
+}
+export class NotFoundError extends AppError {
+  constructor(message = 'Resource not found') {
+    super(message, 404);
+  }
+}
+export class ConflictError extends AppError {
+  constructor(message = 'Resource already exists') {
+    super(message, 409);
+  }
+}
+
+export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  if (err instanceof AppError) {
+    if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
+      res.status(err.status).send(err.message);
+      return;
+    } else {
+      res.status(err.status).json({
+        message: err.message,
+      });
+      return;
+    }
+  }
+
+  res.status(500).json({
+    message: 'Internal Server Error',
   });
+  return;
 };
