@@ -40,7 +40,10 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
   if (err instanceof AppError) {
     if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
-      res.status(err.status).send(err.message);
+      res
+        .header('Content-Type', 'text/plain; charset=utf-8')
+        .status(err.status)
+        .send(err.message);
       return;
     } else {
       res.status(err.status).json({
