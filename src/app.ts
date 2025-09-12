@@ -20,13 +20,6 @@ app.use(
 // routes
 app.use('/v1/cache', cache);
 
-// error logger, must be before error handler
-app.use(
-  expressWinston.errorLogger({
-    winstonInstance: logger,
-  }),
-);
-
 // global error handler
 app.use(errorHandler);
 
