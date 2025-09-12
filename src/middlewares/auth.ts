@@ -19,11 +19,11 @@ export const authForRead = (
 
   const token = authHeader.split(' ')[1];
 
-  if (token !== config.apiKeyReadToken) {
-    throw new ForbiddenError();
+  if (token === config.apiKeyReadToken || token === config.apiKeyWriteToken) {
+    next();
   }
 
-  next();
+  throw new ForbiddenError();
 };
 
 export const authForWrite = (

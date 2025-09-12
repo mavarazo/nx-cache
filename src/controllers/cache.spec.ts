@@ -32,6 +32,24 @@ describe('cache controller', () => {
         .end(done);
     });
 
+    it('should return status 200 from cache with write token', (done) => {
+      // arrange
+      jest.spyOn(recordCache, 'get').mockReturnValue(Buffer.from('cached'));
+
+      // act
+      request(app)
+        .get('/v1/cache/12345')
+        .set('Authorization', 'Bearer write-token')
+        .expect(200)
+        .expect((res) => {
+          expect(res.headers['content-type']).toContain(
+            'application/octet-stream',
+          );
+          expect(res.body).not.toBeUndefined;
+        })
+        .end(done);
+    });
+
     it('should return status 200 from storage', (done) => {
       // arrange
       jest.spyOn(recordCache, 'get').mockReturnValue(undefined);
@@ -67,7 +85,7 @@ describe('cache controller', () => {
     it('should return status 403', (done) => {
       request(app)
         .get('/v1/cache/12345')
-        .set('Authorization', 'Bearer write-token')
+        .set('Authorization', 'Bearer some-token')
         .expect(403)
         .expect((res) => {
           expect(res.text).toEqual('Forbidden');
