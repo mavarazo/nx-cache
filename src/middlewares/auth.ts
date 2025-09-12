@@ -20,7 +20,7 @@ export const authForRead = (
   const token = authHeader.split(' ')[1];
 
   if (token === config.apiKeyReadToken || token === config.apiKeyWriteToken) {
-    next();
+    return next();
   }
 
   throw new ForbiddenError();
