@@ -35,15 +35,16 @@ export class ConflictError extends AppError {
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (res.headersSent) {
+    logger.debug('Header already sent');
     return next(err);
   }
 
   if (err instanceof AppError) {
     if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
       res
-        .header('Content-Type', 'text/plain; charset=utf-8')
-        .status(err.status)
-        .send(err.message);
+        .writeHead(err.status, { 'content-type': 'text/plain' })
+        .end(err.message);
+
       return;
     } else {
       res.status(err.status).json({
