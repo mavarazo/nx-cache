@@ -68,34 +68,16 @@ docker run -d -p 3000:3000 \
 
 ## 🔧 Nx Integration
 
-Update your `nx.json` to enable remote cache support:
+To use your custom caching server, set the NX_SELF_HOSTED_REMOTE_CACHE_SERVER environment variable.
 
-```json
-{
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx/tasks-runners/default",
-      "options": {
-        "cacheableOperations": ["build", "test", "lint", "e2e"],
-        "remoteCache": {
-          "url": "http://localhost:3000/v1/cache",
-          "headers": {
-            "Authorization": "Bearer secret-<read|write>-token"
-          }
-        }
-      }
-    }
-  }
-}
-```
+The following environment variables also affect behavior:
+
+NX_SELF_HOSTED_REMOTE_CACHE_ACCESS_TOKEN: The authentication token to access the cache server.
+NODE_TLS_REJECT_UNAUTHORIZED: Set to 0 to disable TLS certificate validation.
+
+Source: [Nx Remote Cache Usage Notes](https://nx.dev/recipes/running-tasks/self-hosted-caching#usage-notes)
 
 ### Notes
-
-* **cacheableOperations**: defines which tasks should be cached (e.g., `build`, `test`).
-* **remoteCache.url**: URL of your cache server.
-* **headers**: optional – for API key authentication.
-  * GET requests: optional the **read token**.
-  * PUT requests: require the **write token**.
 
 CI/CD best practices:
 
