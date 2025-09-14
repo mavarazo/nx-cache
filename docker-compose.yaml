@@ -1,7 +1,8 @@
 services:
   server:
-    build: .
-    container_name: nx-cache
+    build:
+      dockerfile: Dockerfile.server
+    container_name: nx-cache-server
     environment:
       - API_KEY_READ_TOKEN=1d2298eb-613d-43e0-bf9e-cfe3b93a4b63
       - API_KEY_WRITE_TOKEN=dbbb6aa3-c39c-4689-a7bf-5ae93ac555aa
@@ -9,6 +10,15 @@ services:
       - NODE_ENV=production
     ports:
       - 3000:3000
+    volumes:
+      - cache:/opt/cache
+
+  housekeeping:
+    build:
+      dockerfile: Dockerfile.housekeeping
+    container_name: nx-cache-housekeeping
+    environment:
+      - CACHE_DIR=/opt/cache
     volumes:
       - cache:/opt/cache
 

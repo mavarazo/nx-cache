@@ -1,0 +1,11 @@
+FROM alpine:3.14
+
+RUN apk add --no-cache bash
+
+WORKDIR /app
+
+COPY ./housekeeping.sh .
+
+RUN chmod +x ./housekeeping.sh
+
+ENTRYPOINT ["/bin/bash", "./housekeeping.sh"]
