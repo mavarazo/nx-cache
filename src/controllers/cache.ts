@@ -7,65 +7,100 @@ import { recordCache } from '../config/cache';
 import { AppError, ConflictError, NotFoundError } from '../middlewares/error';
 
 export const getRecord = (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const hash = req.params.hash;
+  const hash = req.params.hash;
 
+  try {
     const cached = recordCache.get(hash);
     if (cached) {
       logger.debug(`Record with hash '${hash}' served from memory cache`);
       res.setHeader('Content-Type', 'application/octet-stream');
       res.status(200).send(cached);
-      return next();
+      return;
     }
 
     const filePath = path.join(config.cacheDir, hash);
-    if (!fs.existsSync(filePath)) {
-      logger.debug(`Record with hash ${hash} not found`);
-      throw new NotFoundError(`Record with hash '${hash}' not found`);
-    }
 
-    logger.debug(`Record with hash '${hash}' served from storage`);
-    const buffer = fs.readFileSync(filePath);
-    recordCache.set(hash, buffer);
+    fs.stat(filePath, (err, stats) => {
+      if (err || !stats.isFile()) {
+        logger.debug(`Record with hash '${hash}' not found`);
+        return next(new NotFoundError(`Record with hash '${hash}' not found`));
+      }
 
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.status(200).send(buffer);
+      const stream = fs.createReadStream(filePath);
+      const chunks: Buffer[] = [];
+
+      stream.on('data', (chunk) => chunks.push(chunk as Buffer));
+
+      stream.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        recordCache.set(hash, buffer);
+        logger.debug(`Record with hash '${hash}' served from storage`);
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.status(200).send(buffer);
+        return;
+      });
+
+      stream.on('error', (err) => {
+        logger.error(`Read stream error: ${err}`);
+        return next(new AppError(`Unable to read record with hash '${hash}'`));
+      });
+    });
   } catch (error) {
     next(error);
   }
 };
 
 export const saveRecord = (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const hash = req.params.hash;
+  const hash = req.params.hash;
+  const filePath = path.join(config.cacheDir, hash);
+  const tempPath = filePath + '.tmp';
 
-    const filePath = path.join(config.cacheDir, hash);
-    logger.debug(`>>> ${filePath}`);
+  try {
     if (recordCache.get(hash) || fs.existsSync(filePath)) {
-      logger.debug(`Record with hash ${hash} already exists`);
-      throw new ConflictError(`Record with hash '${hash}' already exists`);
+      logger.debug(`Record with hash '${hash}' already exists`);
+      return next(
+        new ConflictError(`Record with hash '${hash}' already exists`),
+      );
     }
 
     const chunks: Buffer[] = [];
-    req.on('data', (chunk) => chunks.push(chunk));
+    const writeStream = fs.createWriteStream(tempPath);
+
+    req.on('data', (chunk) => {
+      chunks.push(chunk as Buffer);
+      writeStream.write(chunk);
+    });
+
     req.on('end', () => {
-      const buffer = Buffer.concat(chunks);
+      writeStream.end();
+      writeStream.on('finish', () => {
+        fs.rename(tempPath, filePath, (err) => {
+          if (err) {
+            logger.error(`Rename error: ${err}`);
+            return next(
+              new AppError(`Unable to save record with hash '${hash}'`),
+            );
+          }
 
-      recordCache.set(hash, buffer);
+          const buffer = Buffer.concat(chunks);
+          recordCache.set(hash, buffer);
 
-      fs.writeFile(filePath, buffer, (err) => {
-        if (err) {
-          logger.error(`Write error: ${err}`);
-          throw new AppError(`Unable to save record with hash '${hash}'`);
-        }
-
-        logger.debug(`Record with hash '${hash}' saved to disk and cached`);
-        res.status(202).json({ message: `Record with hash '${hash}' saved` });
+          logger.debug(`Record with hash '${hash}' saved to disk and cached`);
+          res.status(202).json({ message: `Record with hash '${hash}' saved` });
+          return;
+        });
       });
     });
 
-    req.on('error', () => {
-      throw new AppError(`Unable to save record with hash '${hash}'`);
+    req.on('error', (err) => {
+      logger.error(`Request stream error: ${err}`);
+      writeStream.destroy();
+      return next(new AppError(`Unable to save record with hash '${hash}'`));
+    });
+
+    writeStream.on('error', (err) => {
+      logger.error(`Write stream error: ${err}`);
+      return next(new AppError(`Unable to save record with hash '${hash}'`));
     });
   } catch (error) {
     next(error);
